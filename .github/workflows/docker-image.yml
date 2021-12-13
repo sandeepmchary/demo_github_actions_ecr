@@ -1,36 +1,50 @@
-# this is for testing
 on:
   push:
     branches:
     - main
     - FeatureBranch1
 
+name: Build and Push to ECR
+env:
+  AWS_DEFAULT_REGION: us-east-1
+  AWS_DEFAULT_OUTPUT: json
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRETE_ID }}
+  CONTAINER_IMAGE: fastapi-example:${{ github.sha }}
+
 jobs:
   build-and-push:
     name: Build and deploy
     runs-on: ubuntu-latest
     steps:
-    - name: Check out code
-      uses: actions/checkout@v2
-   
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+
+    - name: Checkout
+      uses: actions/checkout@master
+    - name: Set up Python
+      uses: actions/setup-python@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-        aws-region: us-east-1
+        python-version: "3.7"
+    - name: Install Dependencies
+      run: | 
+        python3.7 -m pip install fastapi
+        curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+        unzip awscliv2.zip
+        sudo ./aws/install --update
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-
-    - name: Build, tag, and push image to Amazon ECR
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: fastapi-example
-        IMAGE_TAG: ${{ github.sha }}
+    - name: Setup ECR
       run: |
-        docker build -t $ IMAGE_TAG
-        docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE ./app
+        # Login to AWS ECR
+        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/fastapi-example
+    - name: Build and tag the image
+      run: |
+        # Build and tag the image
+        docker build \
+          -t $CONTAINER_IMAGE \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE ./app
+    # Only push to registry on master
+    - name: Push
+      if: github.ref == 'refs/heads/main'
+      run: |
+        # Push image to AWS ECR
+        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE
