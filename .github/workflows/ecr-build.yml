@@ -16,7 +16,7 @@ on:
     AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
     AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
     AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY }}
-    CONTAINER_IMAGE: fastapi-example: $ {{ github.sha }}
+    CONTAINER_IMAGE: fastapi-example:${{ github.sha }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -43,13 +43,12 @@ jobs:
           sudo ./aws/install  -update
       - name: set up ECR
         run: |
-        # login with ECR
-        aws ecr get-login-password  --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/fastapt-example
+          aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/fastapi-example
       - name: Build and tag image
         run: |
-        docker build \
-          -t $CONTAINER_IMAGE \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE ./app
+          docker build \
+            -t $CONTAINER_IMAGE \
+            -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE ./app
       - name: push
         if github.ref  == 'refs/heads/main'
         run: |
