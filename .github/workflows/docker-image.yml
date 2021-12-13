@@ -33,5 +33,5 @@ jobs:
       run: |
         # Build and tag the image
         docker build \
-          -t $IMAGE_TAG\
+          -t $IMAGE_TAG \
           -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_TAG ./app
