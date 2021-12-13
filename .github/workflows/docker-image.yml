@@ -18,6 +18,7 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
         aws-region: us-east-1
 
     - name: Login to Amazon ECR
@@ -31,7 +32,5 @@ jobs:
         ECR_REPOSITORY: fastapi-example
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        # Build and tag the image
-        docker build \
-          -t $IMAGE_TAG \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_TAG ./app
+        docker build -t $ IMAGE_TAG
+        docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE ./app
