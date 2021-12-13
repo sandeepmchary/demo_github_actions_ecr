@@ -47,4 +47,5 @@ jobs:
       if: github.ref == 'refs/heads/main'
       run: |
         # Push image to AWS ECR
+        # this is for testing
         docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$CONTAINER_IMAGE
